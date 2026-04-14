@@ -10,7 +10,9 @@ import os, uuid
 app = Flask(__name__)
 CORS(app)
 
-model = WhisperModel("medium")
+# ✅ FIXED MODEL (works on Render)
+model = WhisperModel("base")
+
 translator = Translator()
 
 UPLOAD_FOLDER = "uploads"
@@ -34,7 +36,7 @@ def do_translate(text, direction):
 
 
 # =========================
-# 🔊 EDGE TTS (FIXED)
+# 🔊 EDGE TTS
 # =========================
 async def generate_voice(text, lang, voiceType, output_path):
 
@@ -76,14 +78,14 @@ def translate_audio():
 
         create_voice(
             translated,
-            "en" if direction=="fr-en" else "fr",
+            "en" if direction == "fr-en" else "fr",
             voiceType,
             out
         )
 
         return jsonify({
             "translated": translated,
-            "audio": f"http://127.0.0.1:5000/uploads/{filename}"
+            "audio": request.host_url + f"uploads/{filename}"
         })
 
     except Exception as e:
@@ -108,14 +110,14 @@ def translate_text():
 
         create_voice(
             translated,
-            "en" if direction=="fr-en" else "fr",
+            "en" if direction == "fr-en" else "fr",
             voiceType,
             out
         )
 
         return jsonify({
             "translated": translated,
-            "audio": f"http://127.0.0.1:5000/uploads/{filename}"
+            "audio": request.host_url + f"uploads/{filename}"
         })
 
     except Exception as e:
@@ -132,7 +134,7 @@ def translate_doc():
         direction = request.form.get("direction")
 
         if not file.filename.endswith(".docx"):
-            return jsonify({"error":"Use DOCX for best format"}),400
+            return jsonify({"error": "Use DOCX for best format"}), 400
 
         doc = Document(file)
         new_doc = Document()
