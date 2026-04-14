@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from faster_whisper import WhisperModel
-from googletrans import Translator
+from deep_translator import GoogleTranslator
 from docx import Document
 import edge_tts
 import asyncio
@@ -10,10 +10,8 @@ import os, uuid
 app = Flask(__name__)
 CORS(app)
 
-# ✅ FIXED MODEL (works on Render)
+# ✅ WORKING MODEL FOR RENDER
 model = WhisperModel("base")
-
-translator = Translator()
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -23,14 +21,14 @@ def home():
     return "Lingora API Running 🚀"
 
 # =========================
-# TRANSLATE
+# TRANSLATE (FIXED)
 # =========================
 def do_translate(text, direction):
     try:
         if direction == "fr-en":
-            return translator.translate(text, src="fr", dest="en").text
+            return GoogleTranslator(source='fr', target='en').translate(text)
         else:
-            return translator.translate(text, src="en", dest="fr").text
+            return GoogleTranslator(source='en', target='fr').translate(text)
     except:
         return text
 
