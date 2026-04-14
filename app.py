@@ -10,8 +10,8 @@ import os, uuid
 app = Flask(__name__)
 CORS(app)
 
-# ✅ WORKING MODEL FOR RENDER
-model = WhisperModel("base")
+# ✅ DO NOT LOAD MODEL AT START
+model = None
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -21,7 +21,7 @@ def home():
     return "Lingora API Running 🚀"
 
 # =========================
-# TRANSLATE (FIXED)
+# TRANSLATE
 # =========================
 def do_translate(text, direction):
     try:
@@ -56,6 +56,8 @@ def create_voice(text, lang, voiceType, output_path):
 # =========================
 @app.route("/translate", methods=["POST"])
 def translate_audio():
+    global model  # ✅ VERY IMPORTANT
+
     try:
         audio = request.files["audio"]
         direction = request.form.get("direction")
@@ -65,6 +67,10 @@ def translate_audio():
         audio.save(path)
 
         source_lang = "fr" if direction == "fr-en" else "en"
+
+        # ✅ LOAD MODEL ONLY WHEN NEEDED
+        if model is None:
+            model = WhisperModel("base")
 
         segments, _ = model.transcribe(path, language=source_lang)
         text = " ".join([s.text for s in segments])
