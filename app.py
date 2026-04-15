@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
-from faster_whisper import WhisperModel
 from deep_translator import GoogleTranslator
 from docx import Document
 import edge_tts
@@ -9,9 +8,6 @@ import os, uuid
 
 app = Flask(__name__)
 CORS(app)
-
-# ✅ SAFE MODEL INIT
-model = None
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -52,32 +48,17 @@ def create_voice(text, lang, voiceType, output_path):
 
 
 # =========================
-# 🎤 AUDIO
+# 🎤 TEXT-BASED TRANSLATE (NO WHISPER)
 # =========================
 @app.route("/translate", methods=["POST"])
 def translate_audio():
-    global model
-
     try:
-        audio = request.files["audio"]
+        text = request.form.get("text")  # 👈 now expecting text
         direction = request.form.get("direction")
         voiceType = request.form.get("voiceType", "female")
 
-        path = os.path.join(UPLOAD_FOLDER, f"{uuid.uuid4().hex}.webm")
-        audio.save(path)
-
-        source_lang = "fr" if direction == "fr-en" else "en"
-
-        # ✅ SAFE LOAD (LOW MEMORY MODE)
-        if model is None:
-            model = WhisperModel(
-                "base",
-                device="cpu",
-                compute_type="int8"
-            )
-
-        segments, _ = model.transcribe(path, language=source_lang)
-        text = " ".join([s.text for s in segments])
+        if not text:
+            return jsonify({"error": "No text provided"}), 400
 
         translated = do_translate(text, direction)
 
