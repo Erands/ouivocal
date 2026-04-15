@@ -10,7 +10,7 @@ import os, uuid
 app = Flask(__name__)
 CORS(app)
 
-# ✅ DO NOT LOAD MODEL AT START
+# ✅ SAFE MODEL INIT
 model = None
 
 UPLOAD_FOLDER = "uploads"
@@ -56,7 +56,7 @@ def create_voice(text, lang, voiceType, output_path):
 # =========================
 @app.route("/translate", methods=["POST"])
 def translate_audio():
-    global model  # ✅ VERY IMPORTANT
+    global model
 
     try:
         audio = request.files["audio"]
@@ -68,9 +68,13 @@ def translate_audio():
 
         source_lang = "fr" if direction == "fr-en" else "en"
 
-        # ✅ LOAD MODEL ONLY WHEN NEEDED
+        # ✅ SAFE LOAD (LOW MEMORY MODE)
         if model is None:
-            model = WhisperModel("base")
+            model = WhisperModel(
+                "base",
+                device="cpu",
+                compute_type="int8"
+            )
 
         segments, _ = model.transcribe(path, language=source_lang)
         text = " ".join([s.text for s in segments])
