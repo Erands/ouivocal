@@ -4,5 +4,4 @@ gunicorn
 deep-translator
 speechrecognition
 pydub
-faster-whisper
 python-docx
