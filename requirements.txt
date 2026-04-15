@@ -5,3 +5,4 @@ deep-translator
 speechrecognition
 pydub
 python-docx
+edge-tts
